@@ -68,8 +68,8 @@
 #define DXL1_MAXIMUM_POSITION_VALUE     800                 // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
 #define DXL2_MINIMUM_POSITION_VALUE     500
 #define DXL2_MAXIMUM_POSITION_VALUE     800
-#define DXL1_MOVING_STATUS_THRESHOLD    20                  // Dynamixel MX moving status threshold
-#define DXL2_MOVING_STATUS_THRESHOLD    20                  // Dynamixel PRO moving status threshold
+#define DXL1_MOVING_SPEED               20                  // Dynamixel MX moving speed
+#define DXL2_MOVING_SPEED               20                  // Dynamixel MX moving speed
 
 #define ESC_ASCII_VALUE                 0x1b
 
