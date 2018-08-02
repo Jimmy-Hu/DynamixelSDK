@@ -80,7 +80,7 @@
 int getch(void);
 int kbhit(void);
 
-int main()
+int main(void)
 {
   // Initialize PortHandler Structs
   // Set the port path
