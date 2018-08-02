@@ -42,7 +42,7 @@
 
 #include "robotis_def.h"
 
-static const int DEFAULT_BAUDRATE = 57600;
+static const int DEFAULT_BAUDRATE = 1000000;
 
 int     g_used_port_num;
 uint8_t    *g_is_using;
