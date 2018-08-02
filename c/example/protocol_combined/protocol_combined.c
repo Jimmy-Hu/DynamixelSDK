@@ -250,7 +250,7 @@ int main(void)
   return 0;
 }
 
-int getch()
+int getch(void)
 {
 #if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
