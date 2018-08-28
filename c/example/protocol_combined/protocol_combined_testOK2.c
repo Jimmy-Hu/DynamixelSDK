@@ -37,8 +37,10 @@
 #include <conio.h>
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+// To use time library of C
+#include <time.h>
 #include "dynamixel_sdk.h"                                  // Uses Dynamixel SDK library
 
 // Control table address for Dynamixel MX
@@ -64,9 +66,9 @@
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
-#define DXL1_MINIMUM_POSITION_VALUE     500                 // Dynamixel will rotate between this value
+#define DXL1_MINIMUM_POSITION_VALUE     600                 // Dynamixel will rotate between this value
 #define DXL1_MAXIMUM_POSITION_VALUE     800                 // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
-#define DXL2_MINIMUM_POSITION_VALUE     500
+#define DXL2_MINIMUM_POSITION_VALUE     600
 #define DXL2_MAXIMUM_POSITION_VALUE     800
 #define DXL1_MOVING_SPEED               20                  // Dynamixel MX moving speed
 #define DXL2_MOVING_SPEED               20                  // Dynamixel MX moving speed
@@ -79,6 +81,7 @@
 // Function declaration
 int getch(void);
 int kbhit(void);
+void delay(int);
 
 int main(void)
 {
@@ -97,7 +100,7 @@ int main(void)
 
   uint8_t dxl_error = 0;                          // Dynamixel error
   uint16_t dxl1_present_position = 0;             // Present position of Dynamixel MX
-  int32_t dxl2_present_position = 0;              // Present position of Dynamixel PRO
+  uint16_t dxl2_present_position = 0;             // Present position of Dynamixel MX
 
   // Open port
   if (openPort(port_num))
@@ -155,14 +158,48 @@ int main(void)
     printf("Dynamixel#%d has been successfully connected \n", DXL2_ID);
   }
 
-  while(1)
-  {
-    printf("Press any key to continue! (or press ESC to quit!)\n");
-    if (getch() == ESC_ASCII_VALUE)
-      break;
+    // Read Dynamixel#1 present position
+    while(dxl1_present_position == 0)
+    {
+        dxl1_present_position = read2ByteTxRx(port_num, PROTOCOL_VERSION1, DXL1_ID, ADDR_MX_PRESENT_POSITION);
+        if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION1)) != COMM_SUCCESS)
+        {
+          printf("%s\n", getTxRxResult(PROTOCOL_VERSION1, dxl_comm_result));
+        }
+        else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION1)) != 0)
+        {
+          printf("%s\n", getRxPacketError(PROTOCOL_VERSION1, dxl_error));
+        }
+    }
+    
+    // Read Dynamixel#2 present position
+    while(dxl2_present_position == 0)
+    {
+        dxl2_present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION2, DXL2_ID, ADDR_PRO_PRESENT_POSITION);
+        if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION2)) != COMM_SUCCESS)
+        {
+          printf("%s\n", getTxRxResult(PROTOCOL_VERSION2, dxl_comm_result));
+        }
+        else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION2)) != 0)
+        {
+          printf("%s\n", getRxPacketError(PROTOCOL_VERSION2, dxl_error));
+        }
+    }
+    
+    printf("1:[ID:%03d] GoalPos:%03d  PresPos:%03d [ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL1_ID, dxl1_goal_position[index], dxl1_present_position, DXL2_ID, dxl2_goal_position[index], dxl2_present_position);
+    
+    sleep(1);
 
+  for(int loopnum = 500; loopnum < 700; loopnum+=3)
+  {
+    //printf("Press any key to continue! (or press ESC to quit!)\n");
+    //if (getch() == ESC_ASCII_VALUE)
+    //  break;
+    
+    
     // Write Dynamixel#1 goal position
-    write2ByteTxRx(port_num, PROTOCOL_VERSION1, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl1_goal_position[index]);
+    //write2ByteTxRx(port_num, PROTOCOL_VERSION1, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl1_goal_position[index]);
+    write2ByteTxRx(port_num, PROTOCOL_VERSION1, DXL1_ID, ADDR_MX_GOAL_POSITION, loopnum);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION1)) != COMM_SUCCESS)
     {
       printf("%s\n", getTxRxResult(PROTOCOL_VERSION1, dxl_comm_result));
@@ -173,7 +210,8 @@ int main(void)
     }
 
     // Write Dynamixel#2 goal position
-    write4ByteTxRx(port_num, PROTOCOL_VERSION2, DXL2_ID, ADDR_PRO_GOAL_POSITION, dxl2_goal_position[index]);
+    //write4ByteTxRx(port_num, PROTOCOL_VERSION2, DXL2_ID, ADDR_PRO_GOAL_POSITION, dxl2_goal_position[index]);
+    write4ByteTxRx(port_num, PROTOCOL_VERSION2, DXL2_ID, ADDR_PRO_GOAL_POSITION, loopnum);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION2)) != COMM_SUCCESS)
     {
       printf("%s\n", getTxRxResult(PROTOCOL_VERSION2, dxl_comm_result));
@@ -182,44 +220,10 @@ int main(void)
     {
       printf("%s\n", getRxPacketError(PROTOCOL_VERSION2, dxl_error));
     }
-
-    do
-    {
-      // Read Dynamixel#1 present position
-    	dxl1_present_position = read2ByteTxRx(port_num, PROTOCOL_VERSION1, DXL1_ID, ADDR_MX_PRESENT_POSITION);
-      if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION1)) != COMM_SUCCESS)
-      {
-        printf("%s\n", getTxRxResult(PROTOCOL_VERSION1, dxl_comm_result));
-      }
-      else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION1)) != 0)
-      {
-        printf("%s\n", getRxPacketError(PROTOCOL_VERSION1, dxl_error));
-      }
-
-      // Read Dynamixel#2 present position
-      dxl2_present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION2, DXL2_ID, ADDR_PRO_PRESENT_POSITION);
-      if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION2)) != COMM_SUCCESS)
-      {
-        printf("%s\n", getTxRxResult(PROTOCOL_VERSION2, dxl_comm_result));
-      }
-      else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION2)) != 0)
-      {
-        printf("%s\n", getRxPacketError(PROTOCOL_VERSION2, dxl_error));
-      }
-
-      printf("[ID:%03d] GoalPos:%03d  PresPos:%03d [ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL1_ID, dxl1_goal_position[index], dxl1_present_position, DXL2_ID, dxl2_goal_position[index], dxl2_present_position);
-
-    }while((abs(dxl1_goal_position[index] - dxl1_present_position) > DXL1_MOVING_STATUS_THRESHOLD) || (abs(dxl2_goal_position[index] - dxl2_present_position) > DXL2_MOVING_STATUS_THRESHOLD));
-
-    // Change goal position
-    if (index == 0)
-    {
-      index = 1;
-    }
-    else
-    {
-      index = 0;
-    }
+    
+    nanosleep((const struct timespec[]){{0, 100000L}}, NULL);
+    
+    
   }
 
   // Disable Dynamixel#1 Torque
@@ -266,6 +270,8 @@ int getch(void)
   return _getch();
 #endif
 }
+
+
 int kbhit(void)
 {
 #if defined(__linux__) || defined(__APPLE__)
@@ -295,4 +301,14 @@ int kbhit(void)
 #elif defined(_WIN32) || defined(_WIN64)
   return _kbhit();
 #endif
+}
+
+void delay(int milli_seconds)
+{
+    // Stroing start time
+    clock_t start_time = clock();
+ 
+    // looping till required time is not acheived
+    while (clock() < start_time + milli_seconds)
+        ;
 }
