@@ -1,0 +1,1 @@
+/home/jimmy/github/DynamixelSDK/c#/protocol_combined/win64/protocol_combined/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
